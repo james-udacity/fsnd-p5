@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Initialization - DO NOT REMOVE
+. helpers/initialize
+
+##############################################################
+### Customizations start here ################################
+##############################################################
+
+fail_if_not_root  # Comment out if 'root' is not required.
+
+package python-software-properties
+package software-properties-common
+package fail2ban
+package_update
+
+# Add user called grader
+add_user 'grader'
+visudo
+
+# MongoDB
+recipe 'mongodb'
+
+
+# Setup Apache2
+package 'apache2'
+package 'libapache2-mod-wsgi'
+service apache2 restart
+
+# Change SSH port to 2200
+nano /etc/ssh/sshd_config
+service ssh restart
+
+# Setup UFW and open proper ports
+ufw enable
+ufw allow 80/tcp
+ufw allow 80/udp
+ufw allow 2200/tcp
+ufw allow 123/udp
+
+## Set timezone to UTC
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+# Setup NTPD (Network Time Sync)
+package 'ntp'
+sudo service ntp stop
+sudo ntpd -gq
+sudo service ntp start
+
+# Automatic Security Updates
+package unattended-upgrades
+touch /etc/apt/apt.conf.d/10periodic
+add_line 'APT::Periodic::Update-Package-Lists "1";' /etc/apt/apt.conf.d/10periodic
+add_line 'APT::Periodic::Download-Upgradeable-Packages "1";' /etc/apt/apt.conf.d/10periodic
+add_line 'APT::Periodic::AutocleanInterval "7";' /etc/apt/apt.conf.d/10periodic
+add_line 'APT::Periodic::Unattended-Upgrade "1";' /etc/apt/apt.conf.d/10periodic
+
+# Update Apt-Get repositories
+package_update
+
+package 'git-core'
+package 'build-essential'
+
+# Upgrade packages
+apt-get upgrade
+
+# Postgres
+package 'postgresql'
+
+# Configuring Postgres (although my app doesn't use it)
+sudo -u postgres createuser -D -A -P catalog
+sudo -u postgres createdb -O catalog catalog
+sudo /etc/init.d/postgresql reload
+
+### Show the Finished banner
+finished

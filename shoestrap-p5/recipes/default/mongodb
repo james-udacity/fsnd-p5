@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if ! is_installed $*; then
+    apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 7F0CEB10
+    copy 'mongodb.list' '/etc/apt/sources.list.d/'
+    package_update
+    package 'mongodb-server'
+    set_installed $*
+fi
