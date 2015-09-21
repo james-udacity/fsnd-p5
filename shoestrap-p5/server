@@ -21,10 +21,14 @@ visudo
 # MongoDB
 recipe 'mongodb'
 
+# Python
+package python-pip
+
 
 # Setup Apache2
 package 'apache2'
 package 'libapache2-mod-wsgi'
+sudo a2enmod wsgi
 service apache2 restart
 
 # Change SSH port to 2200
